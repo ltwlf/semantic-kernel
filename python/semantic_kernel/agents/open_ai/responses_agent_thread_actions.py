@@ -417,6 +417,20 @@ class ResponsesAgentThreadActions:
                             msg = cls._create_output_item_done(agent, event.item)  # type: ignore
                             if output_messages is not None:
                                 output_messages.append(msg)
+                        case ResponseOutputMessage():
+                            # Handle terminal ResponseOutputMessage (OpenAI Python ≥ 1.26)
+                            # This event contains the full assistant message without .delta attribute
+                            items = cls._collect_items_from_output([event])
+                            msg = cls._build_streaming_msg(
+                                agent=agent,
+                                metadata=metadata,
+                                event=event,
+                                items=items,
+                                choice_index=request_index,
+                            )
+                            all_messages.append(msg)
+                            if output_messages is not None:
+                                output_messages.append(msg)
                         case ResponseErrorEvent():
                             logger.error(
                                 f"Error in agent invoke_stream: {event.message} "
