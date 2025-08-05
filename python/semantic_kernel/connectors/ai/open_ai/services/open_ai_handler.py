@@ -79,6 +79,12 @@ class OpenAIHandler(KernelBaseModel, ABC):
     ) -> ChatCompletion | Completion | AsyncStream[ChatCompletionChunk] | AsyncStream[Completion]:
         """Execute the appropriate call to OpenAI models."""
         try:
+            # Enhance settings for O-series reasoning models
+            if self.ai_model_type == OpenAIModelTypes.CHAT and hasattr(self, 'ai_model_id'):
+                assert isinstance(settings, OpenAIChatPromptExecutionSettings)  # nosec
+                from semantic_kernel.ai.reasoning.enhancer import OSeriesServiceEnhancer
+                OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, self.ai_model_id)
+            
             settings_dict = settings.prepare_settings_dict()
             if self.ai_model_type == OpenAIModelTypes.CHAT:
                 assert isinstance(settings, OpenAIChatPromptExecutionSettings)  # nosec
