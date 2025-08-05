@@ -988,11 +988,27 @@ class ResponsesAgentThreadActions:
     def _generate_options(cls: type[_T], **kwargs: Any) -> dict[str, Any]:
         """Generate a dictionary of options that can be passed directly to create_run."""
         merged = cls._merge_options(**kwargs)
+        
+        # Extract individual options
         truncation = merged.get("truncation", None)
         max_output_tokens = merged.get("max_output_tokens", None)
         parallel_tool_calls = merged.get("parallel_tool_calls", None)
+        reasoning = merged.get("reasoning", None)
+        model = merged.get("model")
+        
+        # Enhanced O-series reasoning support
+        # Only apply auto-reasoning if reasoning is None and not explicitly set to None
+        if model and reasoning is None and "reasoning" not in kwargs:
+            from semantic_kernel.ai.reasoning import OSeriesModelDetector
+            if OSeriesModelDetector.is_o_series_model(model):
+                # Get default reasoning effort for O-series models
+                if "o4" in model.lower():
+                    reasoning = "medium"  # O4 models use medium by default
+                else:
+                    reasoning = "high"    # O1, O3, and other O-series use high by default
+                    
         return {
-            "model": merged.get("model"),
+            "model": model,
             "top_p": merged.get("top_p"),
             "text": merged.get("text"),
             "temperature": merged.get("temperature"),
@@ -1000,6 +1016,7 @@ class ResponsesAgentThreadActions:
             "metadata": merged.get("metadata"),
             "max_output_tokens": max_output_tokens,
             "parallel_tool_calls": parallel_tool_calls,
+            "reasoning": reasoning,  # Include reasoning parameter
         }
 
     @classmethod
