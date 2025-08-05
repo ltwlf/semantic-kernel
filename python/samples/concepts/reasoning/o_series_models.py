@@ -1,15 +1,21 @@
 # Copyright (c) Microsoft. All rights reserved.
 
 """
-Comprehensive examples demonstrating O-series OpenAI model integration
-with Microsoft Semantic Kernel.
+This sample demonstrates comprehensive O-series OpenAI model integration with Semantic Kernel.
 
-This example showcases:
+This sample showcases the following capabilities:
 1. Automatic O-series model detection and parameter injection
-2. Chat completion services with O-series models
-3. ResponsesAgent with O-series models
-4. Custom parameter configuration
+2. Chat completion services with O-series models (o1, o3, o4-mini)
+3. ResponsesAgent integration with O-series models
+4. Custom parameter configuration for enterprise use
 5. Zero breaking changes for existing code
+
+Prerequisites:
+- OpenAI API key for direct OpenAI usage
+- Azure OpenAI endpoint and key for Azure usage
+- O-series model deployments configured
+
+This sample demonstrates production-ready integration for reasoning models.
 """
 
 import asyncio
@@ -35,12 +41,12 @@ async def demonstrate_azure_o_series_integration():
     print("=" * 50)
     
     # 1. Automatic O-series Detection and Configuration
-    print("\n1. Creating Azure chat completion with O1-preview...")
+    print("\n1. Creating Azure chat completion with O1...")
     
-    # This automatically detects O1-preview as an O-series model
+    # This automatically detects O1 as an O-series model
     # and applies appropriate reasoning parameters
     azure_o1_service = AzureChatCompletion(
-        deployment_name="o1-preview",
+        deployment_name="o1",
         api_key=os.getenv("AZURE_OPENAI_API_KEY", "demo-key"),
         endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", "https://demo.openai.azure.com")
     )
@@ -52,7 +58,7 @@ async def demonstrate_azure_o_series_integration():
     print("\n2. Different O-series models with automatic parameter selection...")
     
     models_demo = [
-        ("o1-preview", "High reasoning, 32K tokens"),
+        ("o1", "High reasoning, 32K tokens"),
         ("o4-mini", "Medium reasoning, 16K tokens"),
         ("o3-mini", "High reasoning, 65K tokens"),
     ]
@@ -78,7 +84,7 @@ async def demonstrate_azure_o_series_integration():
     print("   ✓ Chat history created with complex reasoning task")
     print(f"   ✓ Message count: {len(chat_history.messages)}")
     
-    print("\n   💡 When this service is used, O1-preview will automatically receive:")
+    print("\n   💡 When this service is used, O1 will automatically receive:")
     print("      - reasoning_effort: 'high'")
     print("      - store: True")
     print("      - max_completion_tokens: 32768")
@@ -111,12 +117,12 @@ async def demonstrate_responses_agent_o_series():
     print("\n🔹 ResponsesAgent O-series Integration")
     print("=" * 50)
     
-    print("\n1. ResponsesAgent with O1-preview...")
+    print("\n1. ResponsesAgent with O1...")
     
     # The ResponsesAgent automatically detects O-series models
     # and applies appropriate reasoning parameters
     print("   ✓ ResponsesAgent supports automatic O-series reasoning")
-    print("   ✓ O1-preview gets 'high' reasoning effort automatically")
+    print("   ✓ O1 gets 'high' reasoning effort automatically")
     print("   ✓ O4-mini gets 'medium' reasoning effort automatically")
     print("   ✓ User-specified reasoning parameters are preserved")
     
@@ -124,7 +130,7 @@ async def demonstrate_responses_agent_o_series():
     print("\n   💡 Example ResponsesAgent usage:")
     print("   ```python")
     print("   agent = OpenAIResponsesAgent(")
-    print("       ai_model_id='o1-preview',")
+    print("       ai_model_id='o1',")
     print("       client=openai_client")
     print("   )")
     print("   ")
@@ -140,7 +146,7 @@ async def demonstrate_custom_parameter_configuration():
     
     print("\n1. Registering custom enterprise parameters...")
     
-    # Enterprise-specific O1-preview configuration
+    # Enterprise-specific O1 configuration
     enterprise_o1_params = ReasoningParameters(
         reasoning_effort='high',
         store=True,
@@ -150,16 +156,16 @@ async def demonstrate_custom_parameter_configuration():
     
     # Register custom parameters
     ReasoningParametersRegistry.register_custom_parameters(
-        "o1-preview",
+        "o1",
         enterprise_o1_params
     )
     
-    print("   ✓ Custom parameters registered for o1-preview")
+    print("   ✓ Custom parameters registered for o1")
     print(f"   ✓ Max tokens increased to: {enterprise_o1_params.max_completion_tokens}")
     print(f"   ✓ Temperature set to: {enterprise_o1_params.temperature}")
     
     # Retrieve and display custom parameters
-    custom_params = ReasoningParametersRegistry.get_parameters("o1-preview")
+    custom_params = ReasoningParametersRegistry.get_parameters("o1")
     print(f"\n2. Retrieved custom parameters:")
     print(f"   ✓ Reasoning effort: {custom_params.reasoning_effort}")
     print(f"   ✓ Store enabled: {custom_params.store}")
@@ -254,3 +260,71 @@ async def main():
 if __name__ == "__main__":
     # Run the comprehensive demo
     asyncio.run(main())
+
+"""
+Sample output:
+🚀 Microsoft Semantic Kernel - OpenAI O-Series Integration Demo
+================================================================
+
+This demo showcases comprehensive O-series reasoning model support
+across all OpenAI service types with zero breaking changes.
+
+🔹 Azure OpenAI O-series Integration
+==================================================
+
+1. Creating Azure chat completion with O1...
+   ✓ Service created for model: o1
+   ✓ O-series model detected: True
+
+2. Different O-series models with automatic parameter selection...
+   ✓ o1: High reasoning, 32K tokens
+     - Reasoning: high
+     - Max tokens: 32768
+   ✓ o4-mini: Medium reasoning, 16K tokens
+     - Reasoning: medium
+     - Max tokens: 16384
+   ✓ o3-mini: High reasoning, 65K tokens
+     - Reasoning: high
+     - Max tokens: 65536
+
+3. Creating chat history for O-series interaction...
+   ✓ Chat history created with complex reasoning task
+   ✓ Message count: 1
+
+   💡 When this service is used, O1 will automatically receive:
+      - reasoning_effort: 'high'
+      - store: True
+      - max_completion_tokens: 32768
+
+🔹 OpenAI Direct O-series Integration
+==================================================
+
+1. Creating direct OpenAI chat completion with O4-mini...
+   ✓ Service created for model: o4-mini
+   ✓ O-series model detected: True
+   ✓ Auto-applied reasoning effort: medium
+   ✓ Auto-applied max tokens: 16384
+
+🔹 ResponsesAgent O-series Integration
+==================================================
+
+1. ResponsesAgent with O1...
+   ✓ ResponsesAgent supports automatic O-series reasoning
+   ✓ O1 gets 'high' reasoning effort automatically
+   ✓ O4-mini gets 'medium' reasoning effort automatically
+   ✓ User-specified reasoning parameters are preserved
+
+🎉 O-Series Integration Demo Complete!
+==================================================
+
+✅ Key Benefits Demonstrated:
+   • Automatic O-series model detection
+   • Intelligent reasoning parameter injection
+   • Zero breaking changes for existing code
+   • Support across all OpenAI service types
+   • Enterprise-grade customization
+   • Future-proof architecture
+
+🌟 Microsoft Semantic Kernel now provides the most comprehensive
+   OpenAI O-series reasoning model support available!
+"""

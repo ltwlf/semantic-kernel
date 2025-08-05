@@ -23,7 +23,7 @@ class TestOSeriesServiceEnhancer:
         assert settings.max_completion_tokens is None
         
         # Enhance settings
-        OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, "o1-preview")
+        OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, "o1")
         
         # Verify enhancement
         assert settings.reasoning_effort == "high"
@@ -52,7 +52,7 @@ class TestOSeriesServiceEnhancer:
         )
         
         # Enhance settings
-        OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, "o1-preview")
+        OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, "o1")
         
         # Verify existing values are preserved
         assert settings.reasoning_effort == "low"  # Not changed
@@ -68,7 +68,7 @@ class TestOSeriesServiceEnhancer:
         )
         
         # Enhance settings
-        OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, "o1-preview")
+        OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, "o1")
         
         # Verify mixed behavior
         assert settings.reasoning_effort == "low"  # Preserved
@@ -104,7 +104,7 @@ class TestOSeriesServiceEnhancer:
         settings_dict = {}
         
         # Enhance dictionary
-        OSeriesServiceEnhancer.enhance_settings_dict_for_o_series(settings_dict, "o1-preview")
+        OSeriesServiceEnhancer.enhance_settings_dict_for_o_series(settings_dict, "o1")
         
         # Verify enhancement
         assert settings_dict["reasoning_effort"] == "high"
@@ -119,7 +119,7 @@ class TestOSeriesServiceEnhancer:
         }
         
         # Enhance dictionary
-        OSeriesServiceEnhancer.enhance_settings_dict_for_o_series(settings_dict, "o1-preview")
+        OSeriesServiceEnhancer.enhance_settings_dict_for_o_series(settings_dict, "o1")
         
         # Verify mixed behavior
         assert settings_dict["reasoning_effort"] == "low"  # Preserved

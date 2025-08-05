@@ -26,24 +26,24 @@ class TestResponsesAgentOSeries:
 
     def test_o_series_model_detection(self):
         """Test that O-series models are correctly detected."""
-        assert OSeriesModelDetector.is_o_series_model("o1-preview")
+        assert OSeriesModelDetector.is_o_series_model("o1")
         assert OSeriesModelDetector.is_o_series_model("o4-mini")
         assert not OSeriesModelDetector.is_o_series_model("gpt-4o")
 
     def test_responses_agent_generate_options_includes_reasoning_o1(self):
         """Test that _generate_options includes reasoning parameter for O1 models."""
-        agent = MockAgent(ai_model_id="o1-preview")
+        agent = MockAgent(ai_model_id="o1")
         
         # Test _generate_options method
         options = ResponsesAgentThreadActions._generate_options(
             agent=agent,
-            model="o1-preview"
+            model="o1"
         )
         
         # Verify reasoning parameter is included and set correctly for O1
         assert "reasoning" in options
         assert options["reasoning"] == "high"  # O1 should get high reasoning
-        assert options["model"] == "o1-preview"
+        assert options["model"] == "o1"
 
     def test_responses_agent_generate_options_includes_reasoning_o4(self):
         """Test that _generate_options includes reasoning parameter for O4 models."""
@@ -62,12 +62,12 @@ class TestResponsesAgentOSeries:
 
     def test_responses_agent_generate_options_preserves_explicit_reasoning(self):
         """Test that explicit reasoning parameters are preserved."""
-        agent = MockAgent(ai_model_id="o1-preview")
+        agent = MockAgent(ai_model_id="o1")
         
         # Test with explicit reasoning parameter
         options = ResponsesAgentThreadActions._generate_options(
             agent=agent,
-            model="o1-preview",
+            model="o1",
             reasoning="low"  # Explicitly set to low
         )
         
@@ -130,7 +130,7 @@ class TestResponsesAgentOSeries:
     def test_responses_agent_o_series_reasoning_in_all_option_fields(self):
         """Test that O-series reasoning is properly handled with all options."""
         agent = MockAgent(
-            ai_model_id="o1-preview",
+            ai_model_id="o1",
             temperature=0.7,
             top_p=0.9
         )
@@ -138,7 +138,7 @@ class TestResponsesAgentOSeries:
         # Test with multiple options
         options = ResponsesAgentThreadActions._generate_options(
             agent=agent,
-            model="o1-preview",
+            model="o1",
             temperature=0.5,  # Override agent temperature
             max_output_tokens=1024,
             metadata={"test": "value"}
@@ -150,11 +150,11 @@ class TestResponsesAgentOSeries:
         assert options["top_p"] == 0.9  # Agent value
         assert options["max_output_tokens"] == 1024
         assert options["metadata"] == {"test": "value"}
-        assert options["model"] == "o1-preview"
+        assert options["model"] == "o1"
 
     def test_responses_agent_no_model_specified_no_reasoning(self):
         """Test that when no model is specified, no automatic reasoning is applied."""
-        agent = MockAgent(ai_model_id="o1-preview")
+        agent = MockAgent(ai_model_id="o1")
         
         # Test without specifying model parameter
         options = ResponsesAgentThreadActions._generate_options(
@@ -164,17 +164,17 @@ class TestResponsesAgentOSeries:
         
         # When model is None (not provided), should fall back to agent's model
         # but the auto-reasoning logic should still work
-        assert options["model"] == "o1-preview"  # Falls back to agent model
+        assert options["model"] == "o1"  # Falls back to agent model
         assert options["reasoning"] == "high"    # Should still get reasoning
 
     def test_responses_agent_explicit_none_reasoning_preserved(self):
         """Test that explicitly setting reasoning to None is preserved."""
-        agent = MockAgent(ai_model_id="o1-preview")
+        agent = MockAgent(ai_model_id="o1")
         
         # Test with explicit None reasoning
         options = ResponsesAgentThreadActions._generate_options(
             agent=agent,
-            model="o1-preview",
+            model="o1",
             reasoning=None  # Explicitly set to None
         )
         

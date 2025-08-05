@@ -27,8 +27,8 @@ class OSeriesModelDetector:
     O_SERIES_PATTERNS = {
         OSeriesModelType.O1_SERIES: [
             r'^o1$', 
-            r'^o1-preview$', 
-            r'^o1-mini$'
+            r'^o1-mini$',
+            r'^o1-2024-12-17$'
         ],
         OSeriesModelType.O3_SERIES: [
             r'^o3$', 

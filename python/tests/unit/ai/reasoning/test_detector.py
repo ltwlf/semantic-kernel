@@ -13,7 +13,7 @@ class TestOSeriesModelDetector:
     @pytest.mark.parametrize("model_id,expected", [
         # Current O-series models
         ("o1", True),
-        ("o1-preview", True),
+        ("o1", True),
         ("o1-mini", True),
         ("o3", True),
         ("o3-mini", True),
@@ -41,7 +41,7 @@ class TestOSeriesModelDetector:
         ("O1", True),  # Case insensitive
         ("O1-PREVIEW", True),  # Case insensitive
         ("o1 ", True),  # Whitespace handling
-        (" o1-preview ", True),  # Whitespace handling
+        (" o1 ", True),  # Whitespace handling
         
         # Invalid patterns
         ("o", False),
@@ -56,7 +56,7 @@ class TestOSeriesModelDetector:
 
     @pytest.mark.parametrize("model_id,expected_type", [
         ("o1", OSeriesModelType.O1_SERIES),
-        ("o1-preview", OSeriesModelType.O1_SERIES),
+        ("o1", OSeriesModelType.O1_SERIES),
         ("o1-mini", OSeriesModelType.O1_SERIES),
         ("o3", OSeriesModelType.O3_SERIES),
         ("o3-mini", OSeriesModelType.O3_SERIES),
@@ -79,12 +79,12 @@ class TestOSeriesModelDetector:
 
     def test_case_insensitive_detection(self):
         """Test that detection is case insensitive."""
-        models = ["o1", "O1", "o1-preview", "O1-PREVIEW", "O1-Preview"]
+        models = ["o1", "O1", "o1-mini", "O1-MINI", "O1-Mini"]
         for model in models:
             assert OSeriesModelDetector.is_o_series_model(model), f"Case insensitive detection failed for: {model}"
 
     def test_whitespace_handling(self):
         """Test that detection handles whitespace correctly."""
-        models = ["o1", " o1 ", "\to1\n", "  o1-preview  "]
+        models = ["o1", " o1 ", "\to1\n", "  o1-mini  "]
         for model in models:
             assert OSeriesModelDetector.is_o_series_model(model), f"Whitespace handling failed for: '{model}'"

@@ -81,7 +81,7 @@ class TestReasoningParametersRegistry:
 
     def test_get_parameters_for_o1_series(self):
         """Test getting parameters for O1 series models."""
-        models = ["o1", "o1-preview", "o1-mini"]
+        models = ["o1", "o1-mini", "o1-mini"]
         
         for model in models:
             params = ReasoningParametersRegistry.get_parameters(model)
@@ -147,7 +147,7 @@ class TestReasoningParametersRegistry:
     def test_custom_parameters_override_defaults(self):
         """Test that custom parameters override default parameters."""
         # First verify default parameters
-        default_params = ReasoningParametersRegistry.get_parameters("o1-preview")
+        default_params = ReasoningParametersRegistry.get_parameters("o1")
         assert default_params.reasoning_effort == "high"
         
         # Register custom parameters for the same model
@@ -155,10 +155,10 @@ class TestReasoningParametersRegistry:
             reasoning_effort="low",
             store=False
         )
-        ReasoningParametersRegistry.register_custom_parameters("o1-preview", custom_params)
+        ReasoningParametersRegistry.register_custom_parameters("o1", custom_params)
         
         # Verify custom parameters are returned
-        retrieved_params = ReasoningParametersRegistry.get_parameters("o1-preview")
+        retrieved_params = ReasoningParametersRegistry.get_parameters("o1")
         assert retrieved_params == custom_params
         assert retrieved_params.reasoning_effort == "low"
         assert retrieved_params.store is False

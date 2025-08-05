@@ -24,14 +24,14 @@ class TestOSeriesServiceIntegration:
         """Test that Azure chat completion correctly initializes with O1 model."""
         with patch("semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion.AsyncAzureOpenAI"):
             service = AzureChatCompletion(
-                deployment_name="o1-preview",
+                deployment_name="o1",
                 api_key="test-key",
                 endpoint="https://test.openai.azure.com"
             )
             
             # Verify the service recognizes the O-series model
             assert OSeriesModelDetector.is_o_series_model(service.ai_model_id)
-            assert service.ai_model_id == "o1-preview"
+            assert service.ai_model_id == "o1"
 
     def test_openai_chat_completion_with_o_series_initialization(self):
         """Test that OpenAI chat completion correctly initializes with O-series model."""
@@ -49,7 +49,7 @@ class TestOSeriesServiceIntegration:
         """Test that Azure chat completion enhances settings for O1 models."""
         with patch("semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion.AsyncAzureOpenAI"):
             service = AzureChatCompletion(
-                deployment_name="o1-preview",
+                deployment_name="o1",
                 api_key="test-key",
                 endpoint="https://test.openai.azure.com"
             )
@@ -137,7 +137,7 @@ class TestOSeriesServiceIntegration:
         """Test that existing reasoning parameters are preserved during enhancement."""
         with patch("semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion.AsyncAzureOpenAI"):
             service = AzureChatCompletion(
-                deployment_name="o1-preview",
+                deployment_name="o1",
                 api_key="test-key",
                 endpoint="https://test.openai.azure.com"
             )
