@@ -2,9 +2,6 @@
 
 """Tests for O-series integration with ResponsesAgent."""
 
-from unittest.mock import MagicMock
-
-import pytest
 
 from semantic_kernel.agents.open_ai.responses_agent_thread_actions import ResponsesAgentThreadActions
 from semantic_kernel.ai.reasoning import OSeriesModelDetector
@@ -27,7 +24,7 @@ class TestResponsesAgentOSeries:
     def test_o_series_model_detection(self):
         """Test that O-series models are correctly detected."""
         assert OSeriesModelDetector.is_o_series_model("o1")
-        assert OSeriesModelDetector.is_o_series_model("o4-mini")
+        assert OSeriesModelDetector.is_o_series_model("o3-mini")
         assert not OSeriesModelDetector.is_o_series_model("gpt-4o")
 
     def test_responses_agent_generate_options_includes_reasoning_o1(self):
@@ -45,20 +42,20 @@ class TestResponsesAgentOSeries:
         assert options["reasoning"] == "high"  # O1 should get high reasoning
         assert options["model"] == "o1"
 
-    def test_responses_agent_generate_options_includes_reasoning_o4(self):
-        """Test that _generate_options includes reasoning parameter for O4 models."""
-        agent = MockAgent(ai_model_id="o4-mini")
+    def test_responses_agent_generate_options_includes_reasoning_o3(self):
+        """Test that _generate_options includes reasoning parameter for O3 models."""
+        agent = MockAgent(ai_model_id="o3-mini")
         
         # Test _generate_options method
         options = ResponsesAgentThreadActions._generate_options(
             agent=agent,
-            model="o4-mini"
+            model="o3-mini"
         )
         
-        # Verify reasoning parameter is included and set correctly for O4
+        # Verify reasoning parameter is included and set correctly for O3
         assert "reasoning" in options
-        assert options["reasoning"] == "medium"  # O4 should get medium reasoning
-        assert options["model"] == "o4-mini"
+        assert options["reasoning"] == "high"  # O3 should get high reasoning
+        assert options["model"] == "o3-mini"
 
     def test_responses_agent_generate_options_preserves_explicit_reasoning(self):
         """Test that explicit reasoning parameters are preserved."""

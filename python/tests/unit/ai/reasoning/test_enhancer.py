@@ -2,7 +2,6 @@
 
 """Unit tests for O-series service enhancement."""
 
-import pytest
 
 from semantic_kernel.ai.reasoning import OSeriesServiceEnhancer
 from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.open_ai_prompt_execution_settings import (
@@ -28,17 +27,17 @@ class TestOSeriesServiceEnhancer:
         # Verify enhancement
         assert settings.reasoning_effort == "high"
         assert settings.store is True
-        assert settings.max_completion_tokens == 32768
+        assert settings.max_completion_tokens == 16384
 
-    def test_enhance_settings_for_o4_series(self):
-        """Test enhancing settings for O4 series models."""
+    def test_enhance_settings_for_unknown_o_series(self):
+        """Test enhancing settings for unknown O series models."""
         settings = OpenAIChatPromptExecutionSettings()
         
         # Enhance settings
-        OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, "o4-mini")
+        OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, "o5-future")
         
         # Verify enhancement
-        assert settings.reasoning_effort == "medium"
+        assert settings.reasoning_effort == "high"
         assert settings.store is True
         assert settings.max_completion_tokens == 16384
 

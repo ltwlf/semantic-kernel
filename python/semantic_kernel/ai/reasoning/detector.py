@@ -4,7 +4,7 @@
 
 import re
 from enum import Enum
-from typing import Optional
+from typing import ClassVar, Optional
 
 
 class OSeriesModelType(Enum):
@@ -12,7 +12,6 @@ class OSeriesModelType(Enum):
     
     O1_SERIES = "o1"
     O3_SERIES = "o3"
-    O4_SERIES = "o4"
     UNKNOWN_O_SERIES = "unknown_o"
 
 
@@ -23,8 +22,8 @@ class OSeriesModelDetector:
     including current models (O1, O3, O4-mini) and future-proofing for new O-series releases.
     """
 
-    # Comprehensive O-series model patterns
-    O_SERIES_PATTERNS = {
+    # Comprehensive O-series model patterns for confirmed models
+    O_SERIES_PATTERNS: ClassVar[dict] = {
         OSeriesModelType.O1_SERIES: [
             r'^o1$', 
             r'^o1-mini$',
@@ -33,10 +32,6 @@ class OSeriesModelDetector:
         OSeriesModelType.O3_SERIES: [
             r'^o3$', 
             r'^o3-mini$'
-        ],
-        OSeriesModelType.O4_SERIES: [
-            r'^o4-mini$', 
-            r'^o4$'
         ]
     }
 
@@ -45,8 +40,7 @@ class OSeriesModelDetector:
 
     @classmethod
     def is_o_series_model(cls, model_id: Optional[str]) -> bool:
-        """
-        Determine if model is an O-series reasoning model.
+        """Determine if model is an O-series reasoning model.
 
         Args:
             model_id: The model identifier to check
@@ -69,8 +63,7 @@ class OSeriesModelDetector:
 
     @classmethod
     def get_model_type(cls, model_id: str) -> OSeriesModelType:
-        """
-        Get the specific O-series model type.
+        """Get the specific O-series model type.
 
         Args:
             model_id: The model identifier

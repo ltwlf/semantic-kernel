@@ -3,7 +3,7 @@
 """Reasoning parameters management for O-series models."""
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from semantic_kernel.ai.reasoning.detector import OSeriesModelType
 
@@ -35,36 +35,30 @@ class ReasoningParameters:
 class ReasoningParametersRegistry:
     """Enterprise-grade parameters registry for O-series models."""
 
-    # Evidence-based parameter configurations
-    DEFAULT_PARAMETERS = {
+    # Conservative parameter configurations based on known model capabilities
+    DEFAULT_PARAMETERS: ClassVar[Dict[OSeriesModelType, ReasoningParameters]] = {
         OSeriesModelType.O1_SERIES: ReasoningParameters(
             reasoning_effort='high',
             store=True,
-            max_completion_tokens=32768
+            max_completion_tokens=16384
         ),
         OSeriesModelType.O3_SERIES: ReasoningParameters(
             reasoning_effort='high',
             store=True,
-            max_completion_tokens=65536
-        ),
-        OSeriesModelType.O4_SERIES: ReasoningParameters(
-            reasoning_effort='medium',
-            store=True,
-            max_completion_tokens=16384
+            max_completion_tokens=32768
         ),
         OSeriesModelType.UNKNOWN_O_SERIES: ReasoningParameters(
             reasoning_effort='high',
             store=True,
-            max_completion_tokens=32768
+            max_completion_tokens=16384
         )
     }
 
-    _custom_parameters: Dict[str, ReasoningParameters] = {}
+    _custom_parameters: ClassVar[Dict[str, ReasoningParameters]] = {}
 
     @classmethod
     def get_parameters(cls, model_id: str) -> ReasoningParameters:
-        """
-        Get optimized reasoning parameters for specific model.
+        """Get optimized reasoning parameters for specific model.
 
         Args:
             model_id: The model identifier

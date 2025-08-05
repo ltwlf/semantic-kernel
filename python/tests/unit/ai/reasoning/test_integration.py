@@ -2,19 +2,17 @@
 
 """Integration tests for O-series models with OpenAI services."""
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from semantic_kernel.ai.reasoning import OSeriesModelDetector
-from semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion import AzureChatCompletion
-from semantic_kernel.connectors.ai.open_ai.services.open_ai_chat_completion import OpenAIChatCompletion
 from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.azure_chat_prompt_execution_settings import (
     AzureChatPromptExecutionSettings,
 )
 from semantic_kernel.connectors.ai.open_ai.prompt_execution_settings.open_ai_prompt_execution_settings import (
     OpenAIChatPromptExecutionSettings,
 )
+from semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion import AzureChatCompletion
+from semantic_kernel.connectors.ai.open_ai.services.open_ai_chat_completion import OpenAIChatCompletion
 
 
 class TestOSeriesServiceIntegration:
@@ -37,13 +35,13 @@ class TestOSeriesServiceIntegration:
         """Test that OpenAI chat completion correctly initializes with O-series model."""
         with patch("semantic_kernel.connectors.ai.open_ai.services.open_ai_chat_completion.AsyncOpenAI"):
             service = OpenAIChatCompletion(
-                ai_model_id="o4-mini",
+                ai_model_id="o3-mini",
                 api_key="test-key"
             )
             
             # Verify the service recognizes the O-series model
             assert OSeriesModelDetector.is_o_series_model(service.ai_model_id)
-            assert service.ai_model_id == "o4-mini"
+            assert service.ai_model_id == "o3-mini"
 
     def test_azure_chat_completion_settings_enhancement_o1(self):
         """Test that Azure chat completion enhances settings for O1 models."""
@@ -66,13 +64,13 @@ class TestOSeriesServiceIntegration:
             # Verify O1-specific parameters were applied
             assert settings.reasoning_effort == "high"
             assert settings.store is True
-            assert settings.max_completion_tokens == 32768
+            assert settings.max_completion_tokens == 16384
 
-    def test_azure_chat_completion_settings_enhancement_o4(self):
-        """Test that Azure chat completion enhances settings for O4 models."""
+    def test_azure_chat_completion_settings_enhancement_o3(self):
+        """Test that Azure chat completion enhances settings for O3 models."""
         with patch("semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion.AsyncAzureOpenAI"):
             service = AzureChatCompletion(
-                deployment_name="o4-mini",
+                deployment_name="o3-mini",
                 api_key="test-key",
                 endpoint="https://test.openai.azure.com"
             )
@@ -84,10 +82,10 @@ class TestOSeriesServiceIntegration:
             from semantic_kernel.ai.reasoning.enhancer import OSeriesServiceEnhancer
             OSeriesServiceEnhancer.enhance_settings_for_o_series(settings, service.ai_model_id)
             
-            # Verify O4-specific parameters
-            assert settings.reasoning_effort == "medium"
+            # Verify O3-specific parameters
+            assert settings.reasoning_effort == "high"
             assert settings.store is True
-            assert settings.max_completion_tokens == 16384
+            assert settings.max_completion_tokens == 32768
 
     def test_openai_chat_completion_settings_enhancement_o3(self):
         """Test that OpenAI chat completion enhances settings for O3 models."""

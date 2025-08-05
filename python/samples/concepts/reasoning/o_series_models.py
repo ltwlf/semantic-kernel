@@ -5,7 +5,7 @@ This sample demonstrates comprehensive O-series OpenAI model integration with Se
 
 This sample showcases the following capabilities:
 1. Automatic O-series model detection and parameter injection
-2. Chat completion services with O-series models (o1, o3, o4-mini)
+2. Chat completion services with O-series models (o1, o3)
 3. ResponsesAgent integration with O-series models
 4. Custom parameter configuration for enterprise use
 5. Zero breaking changes for existing code
@@ -20,16 +20,13 @@ This sample demonstrates production-ready integration for reasoning models.
 
 import asyncio
 import os
-from typing import Any
 
-from semantic_kernel import Kernel
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, OpenAIChatCompletion
-from semantic_kernel.agents.open_ai import OpenAIResponsesAgent
 from semantic_kernel.ai.reasoning import (
     OSeriesModelDetector,
     ReasoningParameters,
     ReasoningParametersRegistry,
 )
+from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, OpenAIChatCompletion
 from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.contents.chat_message_content import ChatMessageContent
 from semantic_kernel.contents.utils.author_role import AuthorRole
@@ -58,9 +55,8 @@ async def demonstrate_azure_o_series_integration():
     print("\n2. Different O-series models with automatic parameter selection...")
     
     models_demo = [
-        ("o1", "High reasoning, 32K tokens"),
-        ("o4-mini", "Medium reasoning, 16K tokens"),
-        ("o3-mini", "High reasoning, 65K tokens"),
+        ("o1", "High reasoning, 16K tokens"),
+        ("o3-mini", "High reasoning, 32K tokens"),
     ]
     
     for model_id, description in models_demo:
@@ -87,7 +83,7 @@ async def demonstrate_azure_o_series_integration():
     print("\n   💡 When this service is used, O1 will automatically receive:")
     print("      - reasoning_effort: 'high'")
     print("      - store: True")
-    print("      - max_completion_tokens: 32768")
+    print("      - max_completion_tokens: 16384")
 
 
 async def demonstrate_openai_o_series_integration():
@@ -96,10 +92,10 @@ async def demonstrate_openai_o_series_integration():
     print("=" * 50)
     
     # 1. Direct OpenAI Service with O-series
-    print("\n1. Creating direct OpenAI chat completion with O4-mini...")
+    print("\n1. Creating direct OpenAI chat completion with O3-mini...")
     
     openai_service = OpenAIChatCompletion(
-        ai_model_id="o4-mini",
+        ai_model_id="o3-mini",
         api_key=os.getenv("OPENAI_API_KEY", "demo-key")
     )
     
@@ -107,7 +103,7 @@ async def demonstrate_openai_o_series_integration():
     print(f"   ✓ O-series model detected: {OSeriesModelDetector.is_o_series_model(openai_service.ai_model_id)}")
     
     # Get the parameters that would be automatically applied
-    params = ReasoningParametersRegistry.get_parameters("o4-mini")
+    params = ReasoningParametersRegistry.get_parameters("o3-mini")
     print(f"   ✓ Auto-applied reasoning effort: {params.reasoning_effort}")
     print(f"   ✓ Auto-applied max tokens: {params.max_completion_tokens}")
 
@@ -150,7 +146,7 @@ async def demonstrate_custom_parameter_configuration():
     enterprise_o1_params = ReasoningParameters(
         reasoning_effort='high',
         store=True,
-        max_completion_tokens=65536,  # Increased for longer outputs
+        max_completion_tokens=32768,  # Increased for longer outputs
         temperature=0.1  # Lower temperature for consistency
     )
     
@@ -166,7 +162,7 @@ async def demonstrate_custom_parameter_configuration():
     
     # Retrieve and display custom parameters
     custom_params = ReasoningParametersRegistry.get_parameters("o1")
-    print(f"\n2. Retrieved custom parameters:")
+    print("\n2. Retrieved custom parameters:")
     print(f"   ✓ Reasoning effort: {custom_params.reasoning_effort}")
     print(f"   ✓ Store enabled: {custom_params.store}")
     print(f"   ✓ Max tokens: {custom_params.max_completion_tokens}")
@@ -241,7 +237,7 @@ async def main():
         await demonstrate_performance_and_future_proofing()
         
         print("\n🎉 O-Series Integration Demo Complete!")
-        print("="*50)
+        print("=" * 50)
         print("\n✅ Key Benefits Demonstrated:")
         print("   • Automatic O-series model detection")
         print("   • Intelligent reasoning parameter injection")
@@ -277,15 +273,12 @@ across all OpenAI service types with zero breaking changes.
    ✓ O-series model detected: True
 
 2. Different O-series models with automatic parameter selection...
-   ✓ o1: High reasoning, 32K tokens
+   ✓ o1: High reasoning, 16K tokens
+     - Reasoning: high
+     - Max tokens: 16384
+   ✓ o3-mini: High reasoning, 32K tokens
      - Reasoning: high
      - Max tokens: 32768
-   ✓ o4-mini: Medium reasoning, 16K tokens
-     - Reasoning: medium
-     - Max tokens: 16384
-   ✓ o3-mini: High reasoning, 65K tokens
-     - Reasoning: high
-     - Max tokens: 65536
 
 3. Creating chat history for O-series interaction...
    ✓ Chat history created with complex reasoning task
@@ -294,16 +287,16 @@ across all OpenAI service types with zero breaking changes.
    💡 When this service is used, O1 will automatically receive:
       - reasoning_effort: 'high'
       - store: True
-      - max_completion_tokens: 32768
+      - max_completion_tokens: 16384
 
 🔹 OpenAI Direct O-series Integration
 ==================================================
 
-1. Creating direct OpenAI chat completion with O4-mini...
-   ✓ Service created for model: o4-mini
+1. Creating direct OpenAI chat completion with O3-mini...
+   ✓ Service created for model: o3-mini
    ✓ O-series model detected: True
-   ✓ Auto-applied reasoning effort: medium
-   ✓ Auto-applied max tokens: 16384
+   ✓ Auto-applied reasoning effort: high
+   ✓ Auto-applied max tokens: 32768
 
 🔹 ResponsesAgent O-series Integration
 ==================================================
@@ -311,7 +304,6 @@ across all OpenAI service types with zero breaking changes.
 1. ResponsesAgent with O1...
    ✓ ResponsesAgent supports automatic O-series reasoning
    ✓ O1 gets 'high' reasoning effort automatically
-   ✓ O4-mini gets 'medium' reasoning effort automatically
    ✓ User-specified reasoning parameters are preserved
 
 🎉 O-Series Integration Demo Complete!

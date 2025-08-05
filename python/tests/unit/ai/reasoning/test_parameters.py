@@ -5,8 +5,6 @@
 import pytest
 
 from semantic_kernel.ai.reasoning import (
-    OSeriesModelDetector,
-    OSeriesModelType,
     ReasoningParameters,
     ReasoningParametersRegistry,
 )
@@ -97,17 +95,7 @@ class TestReasoningParametersRegistry:
             params = ReasoningParametersRegistry.get_parameters(model)
             assert params.reasoning_effort == "high"
             assert params.store is True
-            assert params.max_completion_tokens == 65536
-
-    def test_get_parameters_for_o4_series(self):
-        """Test getting parameters for O4 series models."""
-        models = ["o4-mini", "o4"]
-        
-        for model in models:
-            params = ReasoningParametersRegistry.get_parameters(model)
-            assert params.reasoning_effort == "medium"
-            assert params.store is True
-            assert params.max_completion_tokens == 16384
+            assert params.max_completion_tokens == 32768
 
     def test_get_parameters_for_unknown_o_series(self):
         """Test getting parameters for unknown O-series models."""
@@ -117,7 +105,7 @@ class TestReasoningParametersRegistry:
             params = ReasoningParametersRegistry.get_parameters(model)
             assert params.reasoning_effort == "high"
             assert params.store is True
-            assert params.max_completion_tokens == 32768
+            assert params.max_completion_tokens == 16384
 
     def test_get_parameters_for_non_o_series_raises_error(self):
         """Test that getting parameters for non-O-series models raises error."""

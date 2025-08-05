@@ -17,8 +17,6 @@ class TestOSeriesModelDetector:
         ("o1-mini", True),
         ("o3", True),
         ("o3-mini", True),
-        ("o4-mini", True),
-        ("o4", True),
         
         # Future O-series models (generic pattern)
         ("o5", True),
@@ -58,8 +56,6 @@ class TestOSeriesModelDetector:
         ("o1-mini", OSeriesModelType.O1_SERIES),
         ("o3", OSeriesModelType.O3_SERIES),
         ("o3-mini", OSeriesModelType.O3_SERIES),
-        ("o4-mini", OSeriesModelType.O4_SERIES),
-        ("o4", OSeriesModelType.O4_SERIES),
         ("o5-future", OSeriesModelType.UNKNOWN_O_SERIES),
         ("o99", OSeriesModelType.UNKNOWN_O_SERIES),
     ])

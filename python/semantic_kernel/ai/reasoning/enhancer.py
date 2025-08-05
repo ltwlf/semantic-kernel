@@ -22,8 +22,7 @@ class OSeriesServiceEnhancer:
         settings: OpenAIChatPromptExecutionSettings,
         ai_model_id: str,
     ) -> None:
-        """
-        Enhance chat settings with O-series reasoning parameters if applicable.
+        """Enhance chat settings with O-series reasoning parameters if applicable.
         
         Args:
             settings: The prompt execution settings to enhance
@@ -59,8 +58,7 @@ class OSeriesServiceEnhancer:
         settings_dict: Dict[str, Any],
         ai_model_id: str,
     ) -> None:
-        """
-        Enhance settings dictionary with O-series reasoning parameters if applicable.
+        """Enhance settings dictionary with O-series reasoning parameters if applicable.
         
         This is a fallback method for cases where settings object enhancement is not sufficient.
         
