@@ -32,12 +32,10 @@ class OSeriesModelDetector:
         ],
         OSeriesModelType.O3_SERIES: [
             r'^o3$', 
-            r'^o3-mini$', 
-            r'^o3-preview$'
+            r'^o3-mini$'
         ],
         OSeriesModelType.O4_SERIES: [
             r'^o4-mini$', 
-            r'^o4-preview$', 
             r'^o4$'
         ]
     }

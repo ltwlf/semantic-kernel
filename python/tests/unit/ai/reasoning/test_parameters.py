@@ -91,7 +91,7 @@ class TestReasoningParametersRegistry:
 
     def test_get_parameters_for_o3_series(self):
         """Test getting parameters for O3 series models."""
-        models = ["o3", "o3-mini", "o3-preview"]
+        models = ["o3", "o3-mini"]
         
         for model in models:
             params = ReasoningParametersRegistry.get_parameters(model)
@@ -101,7 +101,7 @@ class TestReasoningParametersRegistry:
 
     def test_get_parameters_for_o4_series(self):
         """Test getting parameters for O4 series models."""
-        models = ["o4-mini", "o4-preview", "o4"]
+        models = ["o4-mini", "o4"]
         
         for model in models:
             params = ReasoningParametersRegistry.get_parameters(model)
