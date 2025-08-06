@@ -976,6 +976,7 @@ class ResponsesAgentThreadActions:
         Run-level parameters take precedence.
         """
         return {
+            "agent": agent,  # Include agent for reasoning configuration access
             "model": model if model is not None else agent.ai_model_id,
             "text": text if text is not None else agent.text,
             "temperature": temperature if temperature is not None else agent.temperature,
@@ -988,26 +989,54 @@ class ResponsesAgentThreadActions:
     def _generate_options(cls: type[_T], **kwargs: Any) -> dict[str, Any]:
         """Generate a dictionary of options that can be passed directly to create_run."""
         merged = cls._merge_options(**kwargs)
-        
+
         # Extract individual options
         truncation = merged.get("truncation", None)
         max_output_tokens = merged.get("max_output_tokens", None)
         parallel_tool_calls = merged.get("parallel_tool_calls", None)
         reasoning = merged.get("reasoning", None)
+        reasoning_effort = merged.get("reasoning_effort", None)  # Support both parameter names
         model = merged.get("model")
-        
-        # Enhanced O-series reasoning support
-        # Only apply auto-reasoning if reasoning is None and not explicitly set to None
-        if model and reasoning is None and "reasoning" not in kwargs:
-            from semantic_kernel.ai.reasoning import OSeriesModelDetector
-            if OSeriesModelDetector.is_o_series_model(model):
-                # Get default reasoning effort for O-series models
-                if "o4" in model.lower():
-                    reasoning = "medium"  # O4 models use medium by default
-                else:
-                    reasoning = "high"    # O1, O3, and other O-series use high by default
-                    
-        return {
+        agent = merged.get("agent")
+
+        # Track if reasoning was explicitly provided
+        reasoning_explicitly_provided = "reasoning" in merged or "reasoning_effort" in merged
+
+        # Use reasoning_effort if reasoning is not specified (for backward compatibility)
+        if reasoning is None and reasoning_effort is not None:
+            reasoning = reasoning_effort
+
+        # Enhanced O-series reasoning support with C# SK pattern alignment
+        # Priority order: per-invocation > agent constructor default > model default
+        if model and reasoning is None and not reasoning_explicitly_provided:
+            # Check for agent-level default reasoning effort (C# pattern)
+            if agent and hasattr(agent, "_default_reasoning_effort") and agent._default_reasoning_effort is not None:
+                reasoning = agent._default_reasoning_effort
+            else:
+                # Fallback to model default for O-series models only if no agent default
+                # Simple O-series detection (inline to avoid dependency)
+                def is_o_series_model(model_name: str) -> bool:
+                    """Check if model is an O-series reasoning model."""
+                    if not model_name:
+                        return False
+                    return model_name.lower().startswith("o") and any(
+                        model_name.lower().startswith(prefix) for prefix in ["o1", "o2", "o3", "o4", "o5", "o6", "o7", "o8", "o9"]
+                    )
+
+                if is_o_series_model(model):
+                    # Get default reasoning effort for O-series models
+                    reasoning = "medium" if "o4" in model.lower() else "high"
+
+        # Transform reasoning string to object structure expected by OpenAI API
+        reasoning_object = None
+        if reasoning is not None:
+            reasoning_object = {
+                "effort": reasoning,
+                "generate_summary": None,  # Can be set to control summary generation
+            }
+
+        # Build the options dictionary, only including reasoning if it's not None
+        options = {
             "model": model,
             "top_p": merged.get("top_p"),
             "text": merged.get("text"),
@@ -1016,8 +1045,13 @@ class ResponsesAgentThreadActions:
             "metadata": merged.get("metadata"),
             "max_output_tokens": max_output_tokens,
             "parallel_tool_calls": parallel_tool_calls,
-            "reasoning": reasoning,  # Include reasoning parameter
         }
+
+        # Only include reasoning if it's actually set
+        if reasoning_object is not None:
+            options["reasoning"] = reasoning_object
+
+        return options
 
     @classmethod
     def _get_tools(

@@ -293,6 +293,7 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         plugins: list[KernelPlugin | object] | dict[str, KernelPlugin | object] | None = None,
         polling_options: RunPollingOptions | None = None,
         prompt_template_config: "PromptTemplateConfig | None" = None,
+        reasoning_effort: Literal["low", "medium", "high"] | None = None,
         store_enabled: bool | None = None,
         temperature: float | None = None,
         text: ResponseTextConfigParam | None = None,
@@ -319,6 +320,8 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
                 the plugins take precedence and are added to the kernel by default.
             polling_options: The polling options.
             prompt_template_config: The prompt template configuration.
+            reasoning_effort: The default reasoning effort for the agent. Individual invoke calls can override this.
+                Follows C# SK pattern: per-call > agent constructor > model defaults.
             store_enabled: Whether to enable storing the responses from the agent.
             temperature: The temperature for the agent.
             text: The text/response format configuration for the agent.
@@ -377,6 +380,14 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         if kwargs:
             args.update(kwargs)
         super().__init__(**args)
+
+        # Store agent-level reasoning effort for C# SK pattern alignment
+        self._default_reasoning_effort = reasoning_effort
+
+    @property
+    def reasoning_effort(self) -> str | None:
+        """Get the default reasoning effort for this agent."""
+        return self._default_reasoning_effort
 
     @staticmethod
     @deprecated(
@@ -881,6 +892,9 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         kernel = kernel or self.kernel
         arguments = self._merge_arguments(arguments)
 
+        # Apply reasoning effort priority: per-invocation > constructor > model defaults
+        effective_reasoning = reasoning if reasoning is not None else self._default_reasoning_effort
+
         response_level_params = {
             "include": include,
             "instruction_role": instruction_role,
@@ -890,7 +904,7 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             "model": model,
             "parallel_tool_calls": parallel_tool_calls,
             "polling_options": polling_options,
-            "reasoning_effort": reasoning,
+            "reasoning_effort": effective_reasoning,
             "text": text,
             "temperature": temperature,
             "tools": tools,
@@ -1001,6 +1015,9 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         kernel = kernel or self.kernel
         arguments = self._merge_arguments(arguments)
 
+        # Apply reasoning effort priority: per-invocation > constructor > model defaults
+        effective_reasoning = reasoning if reasoning is not None else self._default_reasoning_effort
+
         response_level_params = {
             "include": include,
             "instructions_override": instructions_override,
@@ -1009,7 +1026,7 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             "model": model,
             "parallel_tool_calls": parallel_tool_calls,
             "polling_options": polling_options,
-            "reasoning": reasoning,
+            "reasoning": effective_reasoning,
             "text": text,
             "temperature": temperature,
             "tools": tools,
@@ -1118,6 +1135,9 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         kernel = kernel or self.kernel
         arguments = self._merge_arguments(arguments)
 
+        # Apply reasoning effort priority: per-invocation > constructor > model defaults
+        effective_reasoning = reasoning if reasoning is not None else self._default_reasoning_effort
+
         response_level_params = {
             "include": include,
             "instructions_override": instructions_override,
@@ -1125,7 +1145,7 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             "metadata": metadata,
             "model": model,
             "parallel_tool_calls": parallel_tool_calls,
-            "reasoning": reasoning,
+            "reasoning": effective_reasoning,
             "temperature": temperature,
             "text": text,
             "tools": tools,
