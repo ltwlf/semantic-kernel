@@ -16,7 +16,7 @@ Reasoning models currently have certain limitations, which are outlined below.
 
 1. Requires API version `2024-09-01-preview` or later.
   - `reasoning_effort` and `developer_message` are only supported in API version `2024-12-01-preview` or later.
-  - o1-mini is not supported property `developer_message` `reasoning_effort` now.
+  - o1-mini does not currently support `developer_message` and `reasoning_effort` properties.
 2. Developer message must be used instead of system message
 3. Parallel tool invocation is currently not supported
 4. Token limit settings need to consider both reasoning and completion tokens
