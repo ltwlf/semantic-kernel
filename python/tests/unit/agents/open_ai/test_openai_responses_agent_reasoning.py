@@ -14,6 +14,7 @@ from openai import AsyncOpenAI
 
 from semantic_kernel.agents.open_ai.openai_responses_agent import OpenAIResponsesAgent
 from semantic_kernel.agents.open_ai.responses_agent_thread_actions import ResponsesAgentThreadActions
+from semantic_kernel.exceptions.agent_exceptions import AgentInitializationException
 
 
 class TestOpenAIResponsesAgentReasoning:
@@ -51,6 +52,13 @@ class TestOpenAIResponsesAgentReasoning:
 
         # Test None is also valid
         OpenAIResponsesAgent(ai_model_id="o1", client=client, name="TestAgent", reasoning_effort=None)
+
+        # Test invalid values are rejected
+        with pytest.raises(AgentInitializationException, match="Invalid reasoning effort 'invalid'"):
+            OpenAIResponsesAgent(ai_model_id="o1", client=client, name="TestAgent", reasoning_effort="invalid")
+
+        with pytest.raises(AgentInitializationException, match="Invalid reasoning effort 'veryhigh'"):
+            OpenAIResponsesAgent(ai_model_id="o1", client=client, name="TestAgent", reasoning_effort="veryhigh")
 
     def test_reasoning_priority_order_constructor_used_as_default(self):
         """Test constructor reasoning effort is used as default."""
@@ -147,6 +155,18 @@ class TestOpenAIResponsesAgentReasoning:
             # O-series models get automatic reasoning
             assert "reasoning" in options
             assert options["reasoning"]["effort"] in ["low", "medium", "high"]
+
+    def test_invoke_reasoning_effort_validation(self):
+        """Test that invalid reasoning effort values are rejected during invoke."""
+        # Test that invalid reasoning effort in invoke methods is rejected
+        with pytest.raises(Exception):  # Should be AgentInvokeException but we're testing the validation method
+            ResponsesAgentThreadActions._validate_reasoning_effort_parameter("invalid")
+
+        # Valid values should not raise exceptions
+        ResponsesAgentThreadActions._validate_reasoning_effort_parameter("low")
+        ResponsesAgentThreadActions._validate_reasoning_effort_parameter("medium")
+        ResponsesAgentThreadActions._validate_reasoning_effort_parameter("high")
+        ResponsesAgentThreadActions._validate_reasoning_effort_parameter(None)
 
     def test_non_o_series_model_no_automatic_reasoning(self):
         """Test non-O-series models don't get automatic reasoning."""

@@ -380,13 +380,29 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             args.update(kwargs)
         super().__init__(**args)
 
-        # Store agent-level reasoning effort
+        # Validate and store agent-level reasoning effort
+        self._validate_reasoning_effort(reasoning_effort)
         self._default_reasoning_effort = reasoning_effort
 
     @property
     def reasoning_effort(self) -> str | None:
         """Get the default reasoning effort for this agent."""
         return self._default_reasoning_effort
+
+    @staticmethod
+    def _validate_reasoning_effort(reasoning_effort: Literal["low", "medium", "high"] | None) -> None:
+        """Validate that the reasoning effort is a valid value.
+        
+        Args:
+            reasoning_effort: The reasoning effort to validate.
+            
+        Raises:
+            AgentInitializationException: If the reasoning effort is invalid.
+        """
+        if reasoning_effort is not None and reasoning_effort not in ["low", "medium", "high"]:
+            raise AgentInitializationException(
+                f"Invalid reasoning effort '{reasoning_effort}'. Must be one of: 'low', 'medium', 'high', or None."
+            )
 
     @staticmethod
     @deprecated(

@@ -135,6 +135,9 @@ class ResponsesAgentThreadActions:
         Returns:
             An async iterable of tuple of the visibility of the message and the chat message content.
         """
+        # Validate reasoning effort parameter
+        cls._validate_reasoning_effort_parameter(reasoning)
+        
         arguments = KernelArguments() if arguments is None else KernelArguments(**arguments, **kwargs)
         kernel = kernel or agent.kernel
 
@@ -316,6 +319,9 @@ class ResponsesAgentThreadActions:
         Returns:
             An async iterable of tuple of the visibility of the message and the chat message content.
         """
+        # Validate reasoning effort parameter
+        cls._validate_reasoning_effort_parameter(reasoning)
+        
         arguments = KernelArguments() if arguments is None else KernelArguments(**arguments, **kwargs)
         kernel = kernel or agent.kernel
 
@@ -1000,40 +1006,19 @@ class ResponsesAgentThreadActions:
         model = merged.get("model")
         agent = merged.get("agent")
 
-        # Track if reasoning was explicitly provided
-        reasoning_explicitly_provided = "reasoning" in merged or "reasoning_effort" in merged
-
-        # Use reasoning_effort if reasoning is not specified (for backward compatibility)
-        if reasoning is None and reasoning_effort is not None:
-            reasoning = reasoning_effort
-
-        # Enhanced O-series reasoning support
-        # Priority order: per-invocation > agent constructor default > model default
-        if model and reasoning is None and not reasoning_explicitly_provided:
-            # Check for agent-level default reasoning effort
-            if agent and hasattr(agent, "_default_reasoning_effort") and agent._default_reasoning_effort is not None:
-                reasoning = agent._default_reasoning_effort
-            else:
-                # Fallback to model default for O-series models only if no agent default
-                # Simple O-series detection (inline to avoid dependency)
-                def is_o_series_model(model_name: str) -> bool:
-                    """Check if model is an O-series reasoning model."""
-                    if not model_name:
-                        return False
-                    return model_name.lower().startswith("o") and any(
-                        model_name.lower().startswith(prefix)
-                        for prefix in ["o1", "o2", "o3", "o4", "o5", "o6", "o7", "o8", "o9"]
-                    )
-
-                if is_o_series_model(model):
-                    # Get default reasoning effort for O-series models
-                    reasoning = "medium" if "o4" in model.lower() else "high"
+        # Apply reasoning effort priority hierarchy: per-invocation > constructor > model default
+        effective_reasoning = cls._resolve_reasoning_effort(
+            per_invocation_reasoning=reasoning or reasoning_effort,
+            agent=agent,
+            model=model,
+            reasoning_explicitly_provided="reasoning" in merged or "reasoning_effort" in merged
+        )
 
         # Transform reasoning string to object structure expected by OpenAI API
         reasoning_object = None
-        if reasoning is not None:
+        if effective_reasoning is not None:
             reasoning_object = {
-                "effort": reasoning,
+                "effort": effective_reasoning,
                 "generate_summary": None,  # Can be set to control summary generation
             }
 
@@ -1054,6 +1039,91 @@ class ResponsesAgentThreadActions:
             options["reasoning"] = reasoning_object
 
         return options
+
+    @classmethod
+    def _resolve_reasoning_effort(
+        cls: type[_T],
+        per_invocation_reasoning: str | None,
+        agent: "OpenAIResponsesAgent | None",
+        model: str | None,
+        reasoning_explicitly_provided: bool = False,
+    ) -> str | None:
+        """Resolve the effective reasoning effort using priority hierarchy.
+        
+        Priority order: per-invocation > constructor > model default
+        
+        Args:
+            per_invocation_reasoning: Reasoning effort specified for this invocation
+            agent: The agent instance (may have constructor-level reasoning)
+            model: The model name (for auto-detection of O-series models)
+            reasoning_explicitly_provided: Whether reasoning was explicitly provided (even if None)
+            
+        Returns:
+            The effective reasoning effort to use, or None if no reasoning should be applied
+        """
+        # If reasoning was explicitly provided (even if None), respect that choice
+        if reasoning_explicitly_provided:
+            return per_invocation_reasoning
+            
+        # Priority 1: Per-invocation reasoning (highest priority)
+        if per_invocation_reasoning is not None:
+            return per_invocation_reasoning
+            
+        # Priority 2: Agent constructor default reasoning
+        if agent and hasattr(agent, "_default_reasoning_effort") and agent._default_reasoning_effort is not None:
+            return agent._default_reasoning_effort
+            
+        # Priority 3: Model default reasoning (lowest priority, only for O-series models)
+        if model and cls._is_o_series_model(model):
+            return cls._get_default_reasoning_for_model(model)
+            
+        return None
+
+    @classmethod
+    def _is_o_series_model(cls: type[_T], model_name: str) -> bool:
+        """Check if model is an O-series reasoning model.
+        
+        Args:
+            model_name: The model name to check
+            
+        Returns:
+            True if this is an O-series model that supports reasoning
+        """
+        if not model_name:
+            return False
+        model_lower = model_name.lower()
+        return model_lower.startswith("o") and any(
+            model_lower.startswith(prefix)
+            for prefix in ["o1", "o2", "o3", "o4", "o5", "o6", "o7", "o8", "o9"]
+        )
+
+    @classmethod
+    def _get_default_reasoning_for_model(cls: type[_T], model_name: str) -> str:
+        """Get the default reasoning effort for a specific O-series model.
+        
+        Args:
+            model_name: The O-series model name
+            
+        Returns:
+            The default reasoning effort for this model
+        """
+        # O4 models use medium by default, others use high
+        return "medium" if "o4" in model_name.lower() else "high"
+
+    @classmethod
+    def _validate_reasoning_effort_parameter(cls: type[_T], reasoning_effort: str | None) -> None:
+        """Validate that the reasoning effort parameter is valid.
+        
+        Args:
+            reasoning_effort: The reasoning effort to validate.
+            
+        Raises:
+            AgentInvokeException: If the reasoning effort is invalid.
+        """
+        if reasoning_effort is not None and reasoning_effort not in ["low", "medium", "high"]:
+            raise AgentInvokeException(
+                f"Invalid reasoning effort '{reasoning_effort}'. Must be one of: 'low', 'medium', 'high', or None."
+            )
 
     @classmethod
     def _get_tools(
