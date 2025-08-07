@@ -1021,7 +1021,8 @@ class ResponsesAgentThreadActions:
                     if not model_name:
                         return False
                     return model_name.lower().startswith("o") and any(
-                        model_name.lower().startswith(prefix) for prefix in ["o1", "o2", "o3", "o4", "o5", "o6", "o7", "o8", "o9"]
+                        model_name.lower().startswith(prefix)
+                        for prefix in ["o1", "o2", "o3", "o4", "o5", "o6", "o7", "o8", "o9"]
                     )
 
                 if is_o_series_model(model):
