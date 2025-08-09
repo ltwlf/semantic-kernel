@@ -275,6 +275,7 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
     store_enabled: bool = Field(default=True, description="Whether to store responses.")
     text: dict[str, Any] = Field(default_factory=dict)
     tools: list[ToolParam] = Field(default_factory=list)
+    verbosity: Literal["low", "medium", "high"] | None = Field(default=None)
 
     def __init__(
         self,
@@ -293,11 +294,13 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         plugins: list[KernelPlugin | object] | dict[str, KernelPlugin | object] | None = None,
         polling_options: RunPollingOptions | None = None,
         prompt_template_config: "PromptTemplateConfig | None" = None,
+        reasoning_effort: Literal["minimal", "low", "medium", "high"] | None = None,
         store_enabled: bool | None = None,
         temperature: float | None = None,
         text: ResponseTextConfigParam | None = None,
         tools: list[ToolParam] | None = None,
         top_p: float | None = None,
+        verbosity: Literal["low", "medium", "high"] | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize an OpenAI Responses Agent.
@@ -319,11 +322,13 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
                 the plugins take precedence and are added to the kernel by default.
             polling_options: The polling options.
             prompt_template_config: The prompt template configuration.
+            reasoning_effort: The default reasoning effort for the agent. Individual invoke calls can override this.
             store_enabled: Whether to enable storing the responses from the agent.
             temperature: The temperature for the agent.
             text: The text/response format configuration for the agent.
             tools: The tools to use with the agent.
             top_p: The top p value for the agent.
+            verbosity: The verbosity level for GPT-5 models. Controls how concise the model's output will be.
             kwargs: Additional keyword arguments.
         """
         args: dict[str, Any] = {
@@ -374,9 +379,59 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             args["tools"] = tools
         if top_p is not None:
             args["top_p"] = top_p
+        if verbosity is not None:
+            args["verbosity"] = verbosity
         if kwargs:
             args.update(kwargs)
         super().__init__(**args)
+
+        # Validate and store agent-level reasoning effort
+        self._validate_reasoning_effort(reasoning_effort)
+        self._default_reasoning_effort = reasoning_effort
+
+        # Validate and store agent-level verbosity
+        self._validate_verbosity(verbosity)
+
+    @property
+    def reasoning_effort(self) -> str | None:
+        """Get the default reasoning effort for this agent."""
+        return self._default_reasoning_effort
+
+    @property
+    def verbosity_level(self) -> str | None:
+        """Get the verbosity level for this agent."""
+        return self.verbosity
+
+    @staticmethod
+    def _validate_reasoning_effort(reasoning_effort: Literal["minimal", "low", "medium", "high"] | None) -> None:
+        """Validate that the reasoning effort is a valid value.
+
+        Args:
+            reasoning_effort: The reasoning effort to validate.
+
+        Raises:
+            AgentInitializationException: If the reasoning effort is invalid.
+        """
+        if reasoning_effort is not None and reasoning_effort not in ["minimal", "low", "medium", "high"]:
+            raise AgentInitializationException(
+                f"Invalid reasoning effort '{reasoning_effort}'. "
+                f"Must be one of: 'minimal', 'low', 'medium', 'high', or None."
+            )
+
+    @staticmethod
+    def _validate_verbosity(verbosity: Literal["low", "medium", "high"] | None) -> None:
+        """Validate that the verbosity level is a valid value.
+
+        Args:
+            verbosity: The verbosity level to validate.
+
+        Raises:
+            AgentInitializationException: If the verbosity level is invalid.
+        """
+        if verbosity is not None and verbosity not in ["low", "medium", "high"]:
+            raise AgentInitializationException(
+                f"Invalid verbosity level '{verbosity}'. Must be one of: 'low', 'medium', 'high', or None."
+            )
 
     @staticmethod
     @deprecated(
@@ -826,12 +881,13 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         model: str | None = None,
         parallel_tool_calls: bool | None = None,
         polling_options: RunPollingOptions | None = None,
-        reasoning: Literal["low", "medium", "high"] | None = None,
         text: "ResponseTextConfigParam | None" = None,
         tools: "list[ToolParam] | None" = None,
         temperature: float | None = None,
         top_p: float | None = None,
         truncation: str | None = None,
+        reasoning: Literal["minimal", "low", "medium", "high"] | None = None,
+        verbosity: Literal["low", "medium", "high"] | None = None,
         **kwargs: Any,
     ) -> AgentResponseItem[ChatMessageContent]:
         """Get a response from the agent on a thread.
@@ -859,6 +915,7 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             temperature: The temperature.
             top_p: The top p.
             truncation: The truncation strategy.
+            verbosity: The verbosity level for GPT-5 models.
             kwargs: Additional keyword arguments.
 
         Returns:
@@ -881,6 +938,9 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         kernel = kernel or self.kernel
         arguments = self._merge_arguments(arguments)
 
+        # Apply reasoning effort priority: per-invocation > constructor > model defaults
+        effective_reasoning = reasoning if reasoning is not None else self._default_reasoning_effort
+
         response_level_params = {
             "include": include,
             "instruction_role": instruction_role,
@@ -890,12 +950,13 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             "model": model,
             "parallel_tool_calls": parallel_tool_calls,
             "polling_options": polling_options,
-            "reasoning_effort": reasoning,
+            "reasoning_effort": effective_reasoning,
             "text": text,
             "temperature": temperature,
             "tools": tools,
             "top_p": top_p,
             "truncation": truncation,
+            "verbosity": verbosity,
         }
         response_level_params = {k: v for k, v in response_level_params.items() if v is not None}
 
@@ -946,12 +1007,13 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         model: str | None = None,
         parallel_tool_calls: bool | None = None,
         polling_options: RunPollingOptions | None = None,
-        reasoning: Literal["low", "medium", "high"] | None = None,
+        reasoning: Literal["minimal", "low", "medium", "high"] | None = None,
         temperature: float | None = None,
         text: "ResponseTextConfigParam | None" = None,
         tools: "list[ToolParam] | None" = None,
         top_p: float | None = None,
         truncation: str | None = None,
+        verbosity: Literal["low", "medium", "high"] | None = None,
         **kwargs: Any,
     ) -> AsyncIterable[AgentResponseItem[ChatMessageContent]]:
         """Invoke the agent.
@@ -979,6 +1041,7 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             temperature: The temperature.
             top_p: The top p.
             truncation: The truncation strategy.
+            verbosity: The verbosity level for GPT-5 models.
             kwargs: Additional keyword arguments.
 
         Yields:
@@ -1001,6 +1064,9 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         kernel = kernel or self.kernel
         arguments = self._merge_arguments(arguments)
 
+        # Apply reasoning effort priority: per-invocation > constructor > model defaults
+        effective_reasoning = reasoning if reasoning is not None else self._default_reasoning_effort
+
         response_level_params = {
             "include": include,
             "instructions_override": instructions_override,
@@ -1009,12 +1075,13 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             "model": model,
             "parallel_tool_calls": parallel_tool_calls,
             "polling_options": polling_options,
-            "reasoning": reasoning,
+            "reasoning": effective_reasoning,
             "text": text,
             "temperature": temperature,
             "tools": tools,
             "top_p": top_p,
             "truncation": truncation,
+            "verbosity": verbosity,
         }
         response_level_params = {k: v for k, v in response_level_params.items() if v is not None}
 
@@ -1063,12 +1130,13 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         metadata: dict[str, str] | None = None,
         model: str | None = None,
         parallel_tool_calls: bool | None = None,
-        reasoning: Literal["low", "medium", "high"] | None = None,
+        reasoning: Literal["minimal", "low", "medium", "high"] | None = None,
         temperature: float | None = None,
         text: "ResponseTextConfigParam | None" = None,
         tools: "list[ToolParam] | None" = None,
         top_p: float | None = None,
         truncation: str | None = None,
+        verbosity: Literal["low", "medium", "high"] | None = None,
         **kwargs: Any,
     ) -> AsyncIterable[AgentResponseItem[StreamingChatMessageContent]]:
         """Invoke the agent.
@@ -1096,6 +1164,7 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             temperature: The temperature.
             top_p: The top p.
             truncation: The truncation strategy.
+            verbosity: The verbosity level for GPT-5 models.
             kwargs: Additional keyword arguments.
 
         Yields:
@@ -1118,6 +1187,9 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
         kernel = kernel or self.kernel
         arguments = self._merge_arguments(arguments)
 
+        # Apply reasoning effort priority: per-invocation > constructor > model defaults
+        effective_reasoning = reasoning if reasoning is not None else self._default_reasoning_effort
+
         response_level_params = {
             "include": include,
             "instructions_override": instructions_override,
@@ -1125,12 +1197,13 @@ class OpenAIResponsesAgent(DeclarativeSpecMixin, Agent):
             "metadata": metadata,
             "model": model,
             "parallel_tool_calls": parallel_tool_calls,
-            "reasoning": reasoning,
+            "reasoning": effective_reasoning,
             "temperature": temperature,
             "text": text,
             "tools": tools,
             "top_p": top_p,
             "truncation": truncation,
+            "verbosity": verbosity,
         }
         response_level_params = {k: v for k, v in response_level_params.items() if v is not None}
 
