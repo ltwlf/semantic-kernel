@@ -4,16 +4,16 @@ import logging
 from typing import Annotated, Any, Literal, get_args, get_origin, get_type_hints
 
 from pydantic import BaseModel, create_model
-from semantic_kernel import Kernel
-from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
-from semantic_kernel.contents import AuthorRole, ChatMessageContent
-from semantic_kernel.functions import KernelArguments
-from semantic_kernel.functions.kernel_function_decorator import kernel_function
 
 from guided_conversation.utils.base_model_llm import BaseModelLLM
 from guided_conversation.utils.conversation_helpers import Conversation, ConversationMessageType
 from guided_conversation.utils.openai_tool_calling import ToolValidationResult
 from guided_conversation.utils.plugin_helpers import PluginOutput, fix_error, update_attempts
+from semantic_kernel import Kernel
+from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
+from semantic_kernel.contents import AuthorRole, ChatMessageContent
+from semantic_kernel.functions import KernelArguments
+from semantic_kernel.functions.kernel_function_decorator import kernel_function
 
 ARTIFACT_ERROR_CORRECTION_SYSTEM_TEMPLATE = """<message role="system">You are a helpful, thoughtful, and meticulous assistant.
 You are conducting a conversation with a user. Your goal is to complete an artifact as thoroughly as possible by the end of the conversation.
@@ -248,8 +248,7 @@ Here are the definitions for the custom types referenced in the artifact schema:
 
 {explanation}
 Remember that when updating the artifact, the field will be the original field name in the artifact and the JSON object(s) will be the value."""
-        else:
-            return properties
+        return properties
 
     def get_failed_fields(self) -> list[str]:
         """Get a list of fields that have failed all attempts to update.
@@ -324,10 +323,9 @@ Remember that when updating the artifact, the field will be the original field n
             if isinstance(field_annotation, type) and issubclass(field_annotation, BaseModelLLM):
                 return modified_classes.get(field_annotation.__name__, field_annotation)
             return field_annotation
-        else:
-            # The type is generic; recursively replace the type annotations of the arguments
-            new_args = tuple(self._replace_type_annotations(arg, modified_classes) for arg in args)
-            return origin[new_args]
+        # The type is generic; recursively replace the type annotations of the arguments
+        new_args = tuple(self._replace_type_annotations(arg, modified_classes) for arg in args)
+        return origin[new_args]
 
     def _modify_base_artifact(
         self, artifact_model: type[BaseModelLLM], modified_classes: dict[str, type[BaseModelLLM]] | None = None
@@ -449,7 +447,7 @@ Remember that when updating the artifact, the field will be the original field n
         if tool_name == f"{self.id}-{UPDATE_ARTIFACT_TOOL}":
             field_value = tool_args["value"]
             return True, field_value
-        elif tool_name == f"{self.id}-{RESUME_CONV_TOOL}":
+        if tool_name == f"{self.id}-{RESUME_CONV_TOOL}":
             return True, None
 
     def to_json(self) -> dict:

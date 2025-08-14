@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft. All rights reserved.
 
-from enum import Enum
 import logging
 import math
 import time
+from enum import Enum
 
 from pydantic import BaseModel
 
@@ -123,8 +123,7 @@ class GCResource:
         """
         if formatted_repr:
             return format_resource(self.turn_number, ResourceConstraintUnit.TURNS)
-        else:
-            return self.turn_number
+        return self.turn_number
 
     def get_remaining_turns(self, formatted_repr: bool = False) -> str | int:
         """Get the number of remaining turns.
@@ -137,8 +136,7 @@ class GCResource:
         """
         if formatted_repr:
             return format_resource(self.estimate_remaining_turns(), ResourceConstraintUnit.TURNS)
-        else:
-            return self.estimate_remaining_turns()
+        return self.estimate_remaining_turns()
 
     def estimate_remaining_turns(self) -> int:
         """Estimate the remaining turns based on the resource constraint, thereby translating certain
@@ -171,7 +169,7 @@ class GCResource:
                 # Round down, unless it's less than 1, in which case round up
                 remaining_turns = math.ceil(remaining_turns) if remaining_turns < 1 else math.floor(remaining_turns)
                 return remaining_turns
-            elif self.resource_constraint.unit == ResourceConstraintUnit.TURNS:
+            if self.resource_constraint.unit == ResourceConstraintUnit.TURNS:
                 return self.resource_constraint.quantity - self.turn_number
         else:
             self.logger.error(

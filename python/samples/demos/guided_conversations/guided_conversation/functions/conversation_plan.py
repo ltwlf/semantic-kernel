@@ -2,13 +2,12 @@
 
 import logging
 
-from semantic_kernel import Kernel
-from semantic_kernel.functions import FunctionResult, KernelArguments
-
 from guided_conversation.plugins.agenda import Agenda
 from guided_conversation.plugins.artifact import Artifact
 from guided_conversation.utils.conversation_helpers import Conversation
 from guided_conversation.utils.resources import GCResource, ResourceConstraintMode
+from semantic_kernel import Kernel
+from semantic_kernel.functions import FunctionResult, KernelArguments
 
 logger = logging.getLogger(__name__)
 
@@ -220,10 +219,9 @@ the conversation has come to a natural conclusion, or the user is not cooperatin
         )
 
     # Termination condition under maximum resource constraints
-    elif resource.resource_constraint.mode == ResourceConstraintMode.MAXIMUM:
+    if resource.resource_constraint.mode == ResourceConstraintMode.MAXIMUM:
         return "- You should pick this action as soon as you have completed the artifact to the best of your ability, \
 the conversation has come to a natural conclusion, or the user is not cooperating so you cannot continue the conversation."
 
-    else:
-        logger.error("Invalid resource mode provided.")
-        return ""
+    logger.error("Invalid resource mode provided.")
+    return ""

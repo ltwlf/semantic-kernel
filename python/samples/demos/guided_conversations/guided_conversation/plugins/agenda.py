@@ -4,16 +4,16 @@ import logging
 from typing import Annotated
 
 from pydantic import Field, ValidationError
-from semantic_kernel import Kernel
-from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
-from semantic_kernel.functions import KernelArguments
-from semantic_kernel.functions.kernel_function_decorator import kernel_function
 
 from guided_conversation.utils.base_model_llm import BaseModelLLM
 from guided_conversation.utils.conversation_helpers import Conversation, ConversationMessageType
 from guided_conversation.utils.openai_tool_calling import ToolValidationResult
 from guided_conversation.utils.plugin_helpers import PluginOutput, fix_error, update_attempts
 from guided_conversation.utils.resources import ResourceConstraintMode, ResourceConstraintUnit, format_resource
+from semantic_kernel import Kernel
+from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
+from semantic_kernel.functions import KernelArguments
+from semantic_kernel.functions.kernel_function_decorator import kernel_function
 
 AGENDA_ERROR_CORRECTION_SYSTEM_TEMPLATE = """<message role="system">You are a helpful, thoughtful, and meticulous assistant.
 You are conducting a conversation with a user. You tried to update the agenda, but the update was invalid.
@@ -128,17 +128,15 @@ class Agenda:
                 if len(previous_attempts) > self.max_agenda_retries:
                     self.logger.warning(f"Failed to update agenda after {self.max_agenda_retries} attempts.")
                     return PluginOutput(False, [])
-                else:
-                    self.logger.info(f"Attempting to fix the agenda error. Attempt {len(previous_attempts)}.")
-                    response = await self._fix_agenda_error(llm_formatted_attempts, conversation)
-                    if response["validation_result"] != ToolValidationResult.SUCCESS:
-                        self.logger.warning(
-                            f"Failed to fix the agenda error due to a failure in the LLM tool call: {response['validation_result']}"
-                        )
-                        return PluginOutput(False, [])
-                    else:
-                        # Use the result of the first tool call to try the update again
-                        items = response["tool_args_list"][0]["items"]
+                self.logger.info(f"Attempting to fix the agenda error. Attempt {len(previous_attempts)}.")
+                response = await self._fix_agenda_error(llm_formatted_attempts, conversation)
+                if response["validation_result"] != ToolValidationResult.SUCCESS:
+                    self.logger.warning(
+                        f"Failed to fix the agenda error due to a failure in the LLM tool call: {response['validation_result']}"
+                    )
+                    return PluginOutput(False, [])
+                # Use the result of the first tool call to try the update again
+                items = response["tool_args_list"][0]["items"]
 
     def get_agenda_for_prompt(self) -> str:
         """Gets a string representation of the agenda for use in an LLM prompt.

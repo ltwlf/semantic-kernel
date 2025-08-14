@@ -93,7 +93,7 @@ class IntrospectionTokenVerifier(TokenVerifier):
                 if self._is_valid_resource(audience):
                     return True
             return False
-        elif aud:
+        if aud:
             return self._is_valid_resource(aud)
 
         # No resource binding - invalid per RFC 8707

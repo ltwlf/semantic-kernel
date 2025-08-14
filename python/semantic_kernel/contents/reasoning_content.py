@@ -22,7 +22,7 @@ class ReasoningContent(KernelContent):
     fields (like ids, encrypted blobs, statuses) should be placed in `metadata`.
     """
 
-    content_type: Literal[ContentTypes.REASONING_CONTENT] = Field(REASONING_CONTENT_TAG, init=False)
+    content_type: Literal[ContentTypes.REASONING_CONTENT] = Field(REASONING_CONTENT_TAG, init=False)  # type: ignore
     tag: ClassVar[str] = REASONING_CONTENT_TAG
     text: str = ""
 

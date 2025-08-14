@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft. All rights reserved.
 
-from dataclasses import dataclass, field
 import datetime
-from enum import Enum
 import logging
+from dataclasses import dataclass, field
+from enum import Enum
 from typing import Union
 
 from semantic_kernel.contents import ChatMessageContent
@@ -48,7 +48,7 @@ class Conversation:
             self.conversation_messages.append(messages)
         else:
             self.logger.warning(f"Invalid message type: {type(messages)}")
-            return None
+            return
 
     def get_repr_for_prompt(
         self,

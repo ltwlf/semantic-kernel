@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft. All rights reserved.
 
-from dataclasses import dataclass
-from enum import Enum
 import json
 import logging
+from dataclasses import dataclass
+from enum import Enum
 from typing import Any
 
 from semantic_kernel.contents.function_call_content import FunctionCallContent

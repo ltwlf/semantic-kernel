@@ -7,12 +7,12 @@ fit your needs & try out new scenarios!
 
 import asyncio
 
-from pydantic import BaseModel, Field
-from semantic_kernel import Kernel
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
-
 from guided_conversation.plugins.guided_conversation_agent import GuidedConversation
 from guided_conversation.utils.resources import ResourceConstraint, ResourceConstraintMode, ResourceConstraintUnit
+from pydantic import BaseModel, Field
+
+from semantic_kernel import Kernel
+from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 
 
 # Artifact - The artifact is like a form that the agent must complete throughout the conversation.
@@ -113,12 +113,11 @@ async def main() -> None:
         if user_input == "exit":
             print("\n\nExiting chat...")
             return
-        else:
-            # Step the conversation to get the agent's reply
-            result = await guided_conversation_agent.step_conversation(user_input=user_input)
-            print(f"Assistant: {result.ai_message}")
-            if result.is_conversation_over:
-                return
+        # Step the conversation to get the agent's reply
+        result = await guided_conversation_agent.step_conversation(user_input=user_input)
+        print(f"Assistant: {result.ai_message}")
+        if result.is_conversation_over:
+            return
 
 
 if __name__ == "__main__":
